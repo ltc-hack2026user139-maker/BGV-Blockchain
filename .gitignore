@@ -1,0 +1,15 @@
+# Debug/temp files
+debug_*.png
+debug_*.jpeg
+uploads/
+*.dec.pdf
+scratch_pdf_text.txt
+
+# Python
+__pycache__/
+venv/
+*.pyc
+.env
+# OS
+.DS_Store
+Thumbs.db

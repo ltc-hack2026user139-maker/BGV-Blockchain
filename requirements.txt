@@ -1,0 +1,50 @@
+# ── Core web framework ────────────────────────────────────────────────────────
+flask>=3.0.0
+werkzeug>=3.0.0
+
+# ── HTTP clients ──────────────────────────────────────────────────────────────
+requests>=2.31.0
+httpx>=0.25.0
+
+# ── Image processing ──────────────────────────────────────────────────────────
+pillow>=10.0.0
+numpy>=1.24.0
+opencv-python-headless>=4.8.0
+scipy>=1.11.0
+
+# ── PDF processing ────────────────────────────────────────────────────────────
+PyMuPDF>=1.23.0
+PyPDF2>=3.0.0
+pikepdf>=8.0.0
+pdfplumber>=0.10.0
+
+# ── OCR ───────────────────────────────────────────────────────────────────────
+pytesseract>=0.3.10
+
+# ── QR code detection ─────────────────────────────────────────────────────────
+pyzbar>=0.1.9
+
+# ── Aadhaar-specific ──────────────────────────────────────────────────────────
+pyaadhaar>=2.0.0
+
+# ── PDF digital signature validation ─────────────────────────────────────────
+pyhanko>=0.20.0
+pyhanko-certvalidator>=0.26.0
+
+# ── Cryptography ─────────────────────────────────────────────────────────────
+cryptography>=41.0.0
+
+# ── AI / LLM ─────────────────────────────────────────────────────────────────
+openai>=1.0.0
+
+# ── Deep learning (optional — has classical fallback if unavailable) ──────────
+torch>=2.0.0
+torchvision>=0.15.0
+
+# ── ML utilities ─────────────────────────────────────────────────────────────
+scikit-learn>=1.3.0
+
+# ── Hyperledger Fabric Gateway (only needed when FABRIC_GATEWAY_PEER is set) ──
+fabric-gateway>=1.0.0
+grpcio>=1.59.0
+grpcio-tools>=1.59.0

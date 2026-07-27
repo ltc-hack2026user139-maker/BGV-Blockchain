@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGV Document Verification Engine</title>
+    <meta name="description" content="Automated document verification and tamper detection for background verification">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-group">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="url(#logo-grad)"/>
+                            <path d="M10 16L14 20L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32">
+                                    <stop stop-color="#6366F1"/>
+                                    <stop offset="1" stop-color="#8B5CF6"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="logo-text">DocVerify</h1>
+                        <p class="logo-sub">BGV Verification Engine</p>
+                    </div>
+                </div>
+                <div class="header-badge">
+                    <span class="pulse-dot"></span>
+                    Engine Active
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section" id="upload-section">
+                <div class="section-header">
+                    <h2>Document Verification</h2>
+                    <p>Upload a document to verify its authenticity using cryptographic validation and forensic analysis</p>
+                </div>
+
+                <form id="verify-form" class="verify-form">
+                    <!-- Document Type Selector -->
+                    <div class="form-group">
+                        <label class="form-label">Document Type</label>
+                        <div class="doc-type-selector" id="doc-type-selector">
+                            <button type="button" class="doc-type-btn active" data-type="aadhaar">
+                                <div class="doc-type-icon aadhaar-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="16" rx="2"/>
+                                        <circle cx="9" cy="11" r="2"/>
+                                        <path d="M15 9h2M15 13h2M7 17h10"/>
+                                    </svg>
+                                </div>
+                                <span>Aadhaar</span>
+                                <div class="doc-type-check">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M3 7L6 10L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </button>
+                            <button type="button" class="doc-type-btn" data-type="passport">
+                                <div class="doc-type-icon passport-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="4" y="2" width="16" height="20" rx="2"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                        <path d="M8 18h8"/>
+                                    </svg>
+                                </div>
+                                <span>Passport</span>
+                                <div class="doc-type-check">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M3 7L6 10L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </button>
+                            <button type="button" class="doc-type-btn" data-type="other">
+                                <div class="doc-type-icon other-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                                    </svg>
+                                </div>
+                                <span>Other Doc</span>
+                                <div class="doc-type-check">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M3 7L6 10L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Candidate Details (Optional but Recommended) -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Candidate Details
+                            <span class="label-hint">Optional — Used for cross-document name & DOB matching</span>
+                        </label>
+                        <div class="candidate-inputs" style="display: flex; gap: 16px;">
+                            <div style="flex: 1;">
+                                <input type="text" id="candidate-name" class="form-input" placeholder="Expected Full Name" autocomplete="off">
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="date" id="candidate-dob" class="form-input" title="Expected Date of Birth">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="form-group">
+                        <label class="form-label">Upload Document</label>
+                        <div class="file-drop-zone" id="file-drop-zone">
+                            <div class="drop-zone-content" id="drop-zone-content">
+                                <div class="drop-icon">
+                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                        <rect x="4" y="4" width="40" height="40" rx="12" stroke="url(#upload-grad)" stroke-width="2" stroke-dasharray="4 4"/>
+                                        <path d="M24 18V30M18 24L24 18L30 24" stroke="url(#upload-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <defs>
+                                            <linearGradient id="upload-grad" x1="4" y1="4" x2="44" y2="44">
+                                                <stop stop-color="#6366F1"/>
+                                                <stop offset="1" stop-color="#8B5CF6"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                <p class="drop-text">Drag & drop your document here</p>
+                                <p class="drop-subtext">or <span class="browse-link">browse files</span></p>
+                                <p class="drop-formats">Supports PDF, JPG, PNG • Max 10MB</p>
+                            </div>
+                            <div class="file-preview hidden" id="file-preview">
+                                <div class="file-info">
+                                    <div class="file-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                            <path d="M14 2v6h6"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="file-name" id="file-name">document.pdf</p>
+                                        <p class="file-size" id="file-size">1.2 MB</p>
+                                    </div>
+                                </div>
+                                <button type="button" class="file-remove" id="file-remove" title="Remove file">
+                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4L14 14M14 4L4 14"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                        </div>
+                    </div>
+
+                    <!-- Password Field (Aadhaar) -->
+                    <div class="form-group password-group" id="password-group">
+                        <label class="form-label">
+                            PDF Password
+                            <span class="label-hint">Required for Aadhaar e-PDF</span>
+                        </label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="pdf-password" class="form-input" placeholder="Enter PDF password" autocomplete="off">
+                            <button type="button" class="password-toggle" id="password-toggle" title="Show password">
+                                <svg class="eye-open" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/>
+                                    <circle cx="10" cy="10" r="3"/>
+                                </svg>
+                                <svg class="eye-closed hidden" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/>
+                                    <path d="M3 3L17 17"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="field-hint">Typically your Aadhaar number or ZIP code used during download</p>
+                    </div>
+
+                    <!-- Document Origin — only shown for "Other Document" (tamper detection) -->
+                    <div class="form-group hidden-field" id="doc-origin-group">
+                        <label class="form-label">
+                            Document Origin
+                            <span class="label-hint">Determines which forensic modules apply</span>
+                        </label>
+                        <div class="origin-selector">
+                            <label class="origin-option active" id="origin-digital-label">
+                                <input type="radio" name="docOrigin" id="origin-digital" value="digital" checked hidden>
+                                <span class="origin-icon">🖨️</span>
+                                <div class="origin-text">
+                                    <strong>Digital / Born-digital</strong>
+                                    <span>PDF from software, e-payslip, e-certificate</span>
+                                </div>
+                                <span class="origin-check">✓</span>
+                            </label>
+                            <label class="origin-option" id="origin-scanned-label">
+                                <input type="radio" name="docOrigin" id="origin-scanned" value="scanned" hidden>
+                                <span class="origin-icon">📷</span>
+                                <div class="origin-text">
+                                    <strong>Scanned / Photographed</strong>
+                                    <span>Physical doc scanned or photographed — ELA &amp; DCT skipped</span>
+                                </div>
+                                <span class="origin-check">✓</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="verify-btn" id="verify-btn">
+                        <span class="btn-text">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 17A8 8 0 109 1a8 8 0 000 16z"/>
+                                <path d="M7 9L9 11L13 7"/>
+                            </svg>
+                            Verify Document
+                        </span>
+                        <span class="btn-loading hidden">
+                            <div class="spinner"></div>
+                            Analyzing...
+                        </span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section hidden" id="results-section">
+                <div class="section-header">
+                    <button class="back-btn" id="back-btn">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 10H5M5 10L9 6M5 10L9 14"/>
+                        </svg>
+                        New Verification
+                    </button>
+                    <h2>Verification Results</h2>
+                </div>
+
+                <!-- Verdict Card -->
+                <div class="verdict-card" id="verdict-card">
+                    <div class="verdict-icon" id="verdict-icon"></div>
+                    <div class="verdict-info">
+                        <h3 class="verdict-label" id="verdict-label">VERIFIED</h3>
+                        <p class="verdict-desc" id="verdict-desc">Document passed all verification checks</p>
+                    </div>
+                    <div class="confidence-ring" id="confidence-ring">
+                        <svg viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="none"/>
+                            <circle cx="60" cy="60" r="52" stroke="url(#ring-grad)" stroke-width="8" fill="none"
+                                    stroke-dasharray="327" stroke-dashoffset="327" stroke-linecap="round"
+                                    id="confidence-circle" transform="rotate(-90 60 60)"/>
+                            <defs>
+                                <linearGradient id="ring-grad" x1="0" y1="0" x2="120" y2="120">
+                                    <stop stop-color="#22C55E"/>
+                                    <stop offset="1" stop-color="#16A34A"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="confidence-value">
+                            <span class="confidence-number" id="confidence-number">0</span>
+                            <span class="confidence-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Info -->
+                <div class="pipeline-badge" id="pipeline-badge">
+                    <span class="pipeline-dot"></span>
+                    <span id="pipeline-name">Aadhaar Pipeline</span>
+                </div>
+
+                <!-- Checks Grid -->
+                <div class="checks-container">
+                    <h3 class="checks-title">Validation Checks</h3>
+                    <div class="checks-grid" id="checks-grid">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- MRZ Data Card (passport only) -->
+                <div class="data-card hidden" id="mrz-card">
+                    <h3 class="data-card-title">
+                        <span class="data-card-icon">🛂</span>
+                        Passport MRZ Data
+                        <span class="data-card-badge">Machine Read</span>
+                    </h3>
+                    <div class="data-grid" id="mrz-grid">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Tamper Module Score Breakdown (tamper/other pipeline) -->
+                <div class="data-card hidden" id="tamper-card">
+                    <h3 class="data-card-title">
+                        <span class="data-card-icon">🔬</span>
+                        Forensic Module Scores
+                        <span class="data-card-badge" id="tamper-risk-badge">LOW RISK</span>
+                    </h3>
+                    <div class="module-scores" id="module-scores">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Flags -->
+                <div class="flags-container hidden" id="flags-container">
+                    <h3 class="flags-title">⚠ Flagged Issues</h3>
+                    <div class="flags-list" id="flags-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Digital Fingerprint & Blockchain Ledger -->
+                <div class="data-card fingerprint-card hidden" id="fingerprint-card">
+                    <h3 class="data-card-title">
+                        <span class="data-card-icon">🔗</span>
+                        Digital Fingerprint &amp; Blockchain Ledger
+                        <span class="data-card-badge fp-badge">v3.0</span>
+                    </h3>
+                    <div class="fingerprint-grid" id="fingerprint-grid">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Chain Integrity Verifier -->
+                <div class="data-card" id="chain-integrity-card" style="margin-top:16px;">
+                    <h3 class="data-card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <span>
+                            <span class="data-card-icon">⛓</span>
+                            Blockchain Chain Integrity
+                        </span>
+                        <button id="verify-chain-btn" class="chain-verify-btn" type="button">
+                            Verify Chain
+                        </button>
+                    </h3>
+                    <div id="chain-integrity-result" class="chain-integrity-result">
+                        <p class="chain-hint">Click "Verify Chain" to check whether any block in the audit ledger has been altered. Each block's <code>prev_hash</code> is compared against the previous block's <code>block_hash</code>.</p>
+                    </div>
+                </div>
+
+                <!-- Raw JSON -->
+                <details class="raw-json-details">
+                    <summary class="raw-json-summary">View Raw Response</summary>
+                    <pre class="raw-json" id="raw-json"></pre>
+                </details>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>BGV Document Verification Engine v3.0 • Fingerprinting + Blockchain Audit Ledger Active</p>
+        </footer>
+    </div>
+
+    <script src="/app.js?v=6"></script>
+</body>
+</html>

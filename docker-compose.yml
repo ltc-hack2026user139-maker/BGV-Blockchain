@@ -1,0 +1,95 @@
+# BGV Document Verification — Docker Compose
+#
+# Prerequisites:
+#   1. Hyperledger Fabric test-network must be running on the host:
+#        cd Blockchain-fabric/test-network
+#        ./network.sh up createChannel -c bgvchannel -ca
+#        ./scripts/deployCC.sh bgvchannel bgv ../bgv-chaincode-js/ NA 1.0 node
+#
+#   2. Set FABRIC_SAMPLES_PATH in .env pointing to your fabric-samples directory:
+#        FABRIC_SAMPLES_PATH=C:/Users/<you>/fabric-samples
+#
+#   3. Run:
+#        docker-compose up --build
+#
+# Leave FABRIC_GATEWAY_PEER blank to run without Fabric (local NDJSON ledger fallback).
+
+services:
+  bgv-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bgv-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persistent ledger data (local NDJSON fallback)
+      - bgv_data:/app/data
+
+      # Fabric peer binary (mounted from host — no install needed in image)
+      - type: bind
+        source: ${FABRIC_SAMPLES_PATH}/bin
+        target: /fabric/bin
+        read_only: true
+
+      # Fabric core config (core.yaml)
+      - type: bind
+        source: ${FABRIC_SAMPLES_PATH}/config
+        target: /fabric/config
+        read_only: true
+
+      # Admin MSP (signcerts + keystore)
+      - type: bind
+        source: ${FABRIC_SAMPLES_PATH}/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+        target: /fabric/msp
+        read_only: true
+
+      # Org1 peer TLS CA cert
+      - type: bind
+        source: ${FABRIC_SAMPLES_PATH}/test-network/organizations/peerOrganizations/org1.example.com/tlsca
+        target: /fabric/tls/org1
+        read_only: true
+
+      # Org2 peer TLS CA cert
+      - type: bind
+        source: ${FABRIC_SAMPLES_PATH}/test-network/organizations/peerOrganizations/org2.example.com/tlsca
+        target: /fabric/tls/org2
+        read_only: true
+
+      # Orderer TLS CA cert
+      - type: bind
+        source: ${FABRIC_SAMPLES_PATH}/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts
+        target: /fabric/tls/orderer
+        read_only: true
+
+    environment:
+      # ── Fabric peer CLI config ─────────────────────────────────────────────
+      FABRIC_BIN_PATH: /fabric/bin
+      FABRIC_CFG_PATH: /fabric/config
+      FABRIC_GATEWAY_PEER: ${FABRIC_GATEWAY_PEER:-peer0.org1.example.com:7051}
+      FABRIC_MSP_ID: ${FABRIC_MSP_ID:-Org1MSP}
+      FABRIC_MSP_CONFIG_PATH: /fabric/msp
+      FABRIC_TLS_CERT_PATH: /fabric/tls/org1/tlsca.org1.example.com-cert.pem
+      FABRIC_PEER2_ADDRESS: ${FABRIC_PEER2_ADDRESS:-peer0.org2.example.com:9051}
+      FABRIC_PEER2_TLS_CERT: /fabric/tls/org2/tlsca.org2.example.com-cert.pem
+      FABRIC_ORDERER_ADDRESS: ${FABRIC_ORDERER_ADDRESS:-orderer.example.com:7050}
+      FABRIC_ORDERER_TLS_CERT: /fabric/tls/orderer/tlsca.example.com-cert.pem
+      FABRIC_CHANNEL: ${FABRIC_CHANNEL:-bgvchannel}
+      FABRIC_CHAINCODE: ${FABRIC_CHAINCODE:-bgv}
+
+      # ── App secrets ────────────────────────────────────────────────────────
+      CORTEX_BASE_URL: ${CORTEX_BASE_URL}
+      CORTEX_API_KEY: ${CORTEX_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      BGV_LEDGER_PATH: /app/data/bgv_ledger.ndjson
+
+    extra_hosts:
+      # Resolve Fabric hostnames to the Docker host machine
+      - "peer0.org1.example.com:host-gateway"
+      - "peer0.org2.example.com:host-gateway"
+      - "orderer.example.com:host-gateway"
+
+    restart: unless-stopped
+
+volumes:
+  bgv_data:
