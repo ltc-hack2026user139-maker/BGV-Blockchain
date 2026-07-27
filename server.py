@@ -450,11 +450,12 @@ def ledger_lookup():
 
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', '5000'))
     print("\n" + "=" * 60)
     print("  BGV Document Verification Engine v3.0")
     print("  Fingerprinting + Blockchain Audit Ledger ENABLED")
     print("  Duplicate detection: ON (crypto_hash pre-check)")
-    print("  Server running at: http://localhost:5000")
+    print(f"  Server running at: http://0.0.0.0:{port}")
     print("=" * 60 + "\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
 
