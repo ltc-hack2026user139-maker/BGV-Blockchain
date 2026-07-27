@@ -47,3 +47,5 @@ substitutions:
 
 images:
   - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+options:
+  logging: CLOUD_LOGGING_ONLY
