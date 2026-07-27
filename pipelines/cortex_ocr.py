@@ -1,42 +1,44 @@
 """
-Cortex / Gemini vision-based OCR and field comparison for Aadhaar documents.
+Vertex AI / Gemini vision-based OCR and field comparison for Aadhaar and Passport documents.
 
 Credentials are read from environment variables (or .env file loaded by server.py):
-  CORTEX_BASE_URL  — e.g. https://cortex.lloydsbanking.cloud/api/v1
-  CORTEX_API_KEY   — Bearer token
-  GEMINI_MODEL     — e.g. gemini-2.5-flash
+  GOOGLE_CLOUD_PROJECT  — GCP project ID (required)
+  GOOGLE_CLOUD_LOCATION — e.g. global (default: global)
+  GEMINI_MODEL          — e.g. gemini-2.5-flash
 """
 
-import base64
 import io
 import json
 import os
 import re
 
-import httpx
-from openai import OpenAI
+from google import genai
+from google.genai import types
 from PIL import Image
 
 
-CORTEX_BASE_URL: str = os.getenv('CORTEX_BASE_URL', 'https://cortex.lloydsbanking.cloud/api/v1')
-CORTEX_API_KEY:  str = os.getenv('CORTEX_API_KEY', '')
-GEMINI_MODEL:    str = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+GOOGLE_CLOUD_PROJECT:  str = os.getenv('GOOGLE_CLOUD_PROJECT', '')
+GOOGLE_CLOUD_LOCATION: str = os.getenv('GOOGLE_CLOUD_LOCATION', 'global')
+GEMINI_MODEL:          str = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+
+# Backward-compat alias — aadhaar.py and passport.py check CORTEX_API_KEY to decide
+# whether to call the vision model. Re-use the project ID as a truthy sentinel.
+CORTEX_API_KEY: str = GOOGLE_CLOUD_PROJECT
 
 
-def _cortex_client(api_key: str, base_url: str) -> OpenAI:
-    """Build an OpenAI-compatible client pointed at the Cortex endpoint."""
-    return OpenAI(
-        base_url=base_url,
-        api_key=api_key,
-        http_client=httpx.Client(verify=False),  # internal Cortex cert may be self-signed
+def _vertex_client() -> genai.Client:
+    return genai.Client(
+        vertexai=True,
+        project=GOOGLE_CLOUD_PROJECT,
+        location=GOOGLE_CLOUD_LOCATION,
     )
 
 
-def _image_to_base64(image: Image.Image) -> str:
+def _image_to_bytes(image: Image.Image) -> bytes:
     buf = io.BytesIO()
     image.convert('RGB').save(buf, format='PNG')
     buf.seek(0)
-    return base64.b64encode(buf.read()).decode('utf-8')
+    return buf.read()
 
 
 def cortex_compare_aadhaar(
@@ -48,7 +50,7 @@ def cortex_compare_aadhaar(
 ) -> dict:
     """
     Send the rendered Aadhaar page image + QR-decoded ground-truth to the
-    Cortex API (Gemini vision model) and ask it to:
+    Vertex AI Gemini vision model and ask it to:
       1. Extract name / DOB / gender from the PRINTED VISIBLE TEXT only
          (explicitly NOT the QR barcode).
       2. Compare extracted values with the QR ground-truth.
@@ -66,12 +68,10 @@ def cortex_compare_aadhaar(
             'error': str,   # only present on failure
         }
     """
-    _api_key  = api_key  or CORTEX_API_KEY
-    _base_url = (base_url or CORTEX_BASE_URL).rstrip('/')
-    _model    = model    or GEMINI_MODEL
+    _model = model or GEMINI_MODEL
 
-    if not _api_key:
-        return {'success': False, 'error': 'CORTEX_API_KEY not configured'}
+    if not GOOGLE_CLOUD_PROJECT:
+        return {'success': False, 'error': 'GOOGLE_CLOUD_PROJECT not configured'}
 
     qr_summary = (
         f"Name  : {qr_data.get('name',   'N/A')}\n"
@@ -90,8 +90,9 @@ def cortex_compare_aadhaar(
         "2. Compare what you extracted with these QR-decoded ground-truth values:\n"
         f"{qr_summary}\n\n"
         "3. Evaluate whether the printed values match the QR values.\n"
-        "   - If the DOB printed on the card face differs from the QR DOB, "
-        "set tampering_suspected = true.\n"
+        "   - Compare dates by their actual day/month/year values ONLY — ignore separator differences\n"
+        "     (e.g. '25/04/2001' and '25-04-2001' are the SAME date, set dob_match = true).\n"
+        "   - Only set tampering_suspected = true if the actual date digits differ (e.g. year changed).\n"
         "   - If any field is missing from the card face, set that match field to false.\n\n"
         "Return ONLY valid JSON — no markdown fences, no explanation — in this exact schema:\n"
         '{"ocr_name":"...","ocr_dob":"...","ocr_gender":"...",'
@@ -101,30 +102,24 @@ def cortex_compare_aadhaar(
 
     raw_content = ''
     try:
-        client = _cortex_client(_api_key, _base_url)
+        client = _vertex_client()
 
-        response = client.chat.completions.create(
+        response = client.models.generate_content(
             model=_model,
-            temperature=0,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{_image_to_base64(page_image)}"
-                            },
-                        },
-                        {"type": "text", "text": prompt},
-                    ],
-                }
+            contents=[
+                prompt,
+                types.Part.from_bytes(
+                    data=_image_to_bytes(page_image),
+                    mime_type='image/png',
+                ),
             ],
+            config=types.GenerateContentConfig(
+                temperature=0,
+                response_mime_type='application/json',
+            ),
         )
 
-        raw_content = response.choices[0].message.content.strip()
-
-        # Strip markdown fences in case the model wraps the JSON
+        raw_content = response.text.strip()
         json_text = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw_content, flags=re.MULTILINE).strip()
         parsed = json.loads(json_text)
 
@@ -149,13 +144,13 @@ def cortex_compare_aadhaar(
     except (json.JSONDecodeError, KeyError) as exc:
         return {
             'success': False,
-            'error': f'Failed to parse Cortex response: {exc}',
+            'error': f'Failed to parse Gemini response: {exc}',
             'raw_response': raw_content,
         }
     except Exception as exc:
         return {
             'success': False,
-            'error': f'Cortex API error: {exc}',
+            'error': f'Vertex AI error: {exc}',
             'raw_response': raw_content,
         }
 
@@ -169,7 +164,7 @@ def cortex_compare_passport(
 ) -> dict:
     """
     Send the passport page image + MRZ-decoded ground-truth to the
-    Cortex API (Gemini vision model) and ask it to:
+    Vertex AI Gemini vision model and ask it to:
       1. Extract name / DOB / gender from the PRINTED VISUAL TEXT only
          (the upper VIZ portion — NOT the MRZ strip at the bottom).
       2. Compare extracted values with the MRZ ground-truth.
@@ -190,12 +185,10 @@ def cortex_compare_passport(
             'error': str,   # only present on failure
         }
     """
-    _api_key  = api_key  or CORTEX_API_KEY
-    _base_url = (base_url or CORTEX_BASE_URL).rstrip('/')
-    _model    = model    or GEMINI_MODEL
+    _model = model or GEMINI_MODEL
 
-    if not _api_key:
-        return {'success': False, 'error': 'CORTEX_API_KEY not configured'}
+    if not GOOGLE_CLOUD_PROJECT:
+        return {'success': False, 'error': 'GOOGLE_CLOUD_PROJECT not configured'}
 
     mrz_summary = (
         f"Full Name   : {mrz_data.get('full_name',       'N/A')}\n"
@@ -235,34 +228,30 @@ def cortex_compare_passport(
 
     raw_content = ''
     try:
-        client = _cortex_client(_api_key, _base_url)
+        client = _vertex_client()
 
-        response = client.chat.completions.create(
+        response = client.models.generate_content(
             model=_model,
-            temperature=0,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{_image_to_base64(page_image)}"
-                            },
-                        },
-                        {"type": "text", "text": prompt},
-                    ],
-                }
+            contents=[
+                prompt,
+                types.Part.from_bytes(
+                    data=_image_to_bytes(page_image),
+                    mime_type='image/png',
+                ),
             ],
+            config=types.GenerateContentConfig(
+                temperature=0,
+                response_mime_type='application/json',
+            ),
         )
 
-        raw_content = response.choices[0].message.content.strip()
+        raw_content = response.text.strip()
         json_text = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw_content, flags=re.MULTILINE).strip()
         parsed = json.loads(json_text)
 
-        given  = str(parsed.get('ocr_given_names', '') or '')
-        surname = str(parsed.get('ocr_surname',    '') or '')
-        full   = str(parsed.get('ocr_full_name',   '') or (f'{given} {surname}'.strip()))
+        given   = str(parsed.get('ocr_given_names', '') or '')
+        surname = str(parsed.get('ocr_surname',     '') or '')
+        full    = str(parsed.get('ocr_full_name',   '') or (f'{given} {surname}'.strip()))
 
         return {
             'success': True,
@@ -288,12 +277,12 @@ def cortex_compare_passport(
     except (json.JSONDecodeError, KeyError) as exc:
         return {
             'success': False,
-            'error': f'Failed to parse Cortex response: {exc}',
+            'error': f'Failed to parse Gemini response: {exc}',
             'raw_response': raw_content,
         }
     except Exception as exc:
         return {
             'success': False,
-            'error': f'Cortex API error: {exc}',
+            'error': f'Vertex AI error: {exc}',
             'raw_response': raw_content,
         }

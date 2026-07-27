@@ -1770,34 +1770,29 @@ def run_cortex_tamper_analysis(image: Image.Image) -> dict:
     }
 
     try:
-        import base64
         import io
         import json
-        import re
         import os
+        import re
 
-        api_key = os.getenv('CORTEX_API_KEY', '')
-        base_url = os.getenv('CORTEX_BASE_URL', 'https://cortex.lloydsbanking.cloud/api/v1')
-        model = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+        import google
+        from google import genai
+        from google.genai import types
 
-        if not api_key:
-            result['detail'] = 'Cortex API key not configured — AI analysis skipped'
+        project  = os.getenv('GOOGLE_CLOUD_PROJECT', '')
+        location = os.getenv('GOOGLE_CLOUD_LOCATION', 'global')
+        model    = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+
+        if not project:
+            result['detail'] = 'GOOGLE_CLOUD_PROJECT not configured — AI analysis skipped'
             result['score'] = 0.0
             return result
 
-        import httpx
-        from openai import OpenAI
-
-        client = OpenAI(
-            base_url=base_url.rstrip('/'),
-            api_key=api_key,
-            http_client=httpx.Client(verify=False),
-        )
+        client = genai.Client(vertexai=True, project=project, location=location)
 
         buf = io.BytesIO()
         image.convert('RGB').save(buf, format='PNG')
-        buf.seek(0)
-        img_b64 = base64.b64encode(buf.read()).decode('utf-8')
+        img_bytes = buf.getvalue()
 
         prompt = (
             "You are a forensic document examiner. Analyze this document image for signs of tampering or editing.\n\n"
@@ -1827,24 +1822,19 @@ def run_cortex_tamper_analysis(image: Image.Image) -> dict:
             "Be conservative — only flag clear visual evidence of specific edits, not general document characteristics."
         )
 
-        response = client.chat.completions.create(
+        response = client.models.generate_content(
             model=model,
-            temperature=0,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/png;base64,{img_b64}"},
-                        },
-                        {"type": "text", "text": prompt},
-                    ],
-                }
+            contents=[
+                prompt,
+                types.Part.from_bytes(data=img_bytes, mime_type='image/png'),
             ],
+            config=types.GenerateContentConfig(
+                temperature=0,
+                response_mime_type='application/json',
+            ),
         )
 
-        raw_content = response.choices[0].message.content.strip()
+        raw_content = response.text.strip()
         json_text = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw_content, flags=re.MULTILINE).strip()
         parsed = json.loads(json_text)
 
