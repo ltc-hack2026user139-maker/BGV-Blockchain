@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \ 
     gcc \
     g++ \
     libgl1 \
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Hyperledger Fabric peer binary + config
-RUN wget -q https://github.com/hyperledger/fabric/releases/download/v2.5.0/hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \
+RUN wget -q https://github.com/hyperledger/fabric/releases/download/v2.5.0/hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \ 
     tar xzf hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \
     mv bin/peer /usr/local/bin/peer && \
     mv config /app/fabric-config && \
@@ -45,4 +45,7 @@ EXPOSE 5000
 ENV FLASK_ENV=production
 ENV BGV_LEDGER_PATH=/app/data/bgv_ledger.ndjson
 
-CMD ["python", "server.py"]
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+CMD ["/app/entrypoint.sh"]
+ 
