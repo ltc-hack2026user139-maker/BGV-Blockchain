@@ -23,6 +23,7 @@
     const passwordInput = document.getElementById('pdf-password');
     const passwordToggle = document.getElementById('password-toggle');
     const docOriginGroup = document.getElementById('doc-origin-group');
+    const passwordErrorMsg = document.getElementById('password-error-msg');
     const originDigitalLabel = document.getElementById('origin-digital-label');
     const originScannedLabel = document.getElementById('origin-scanned-label');
     const originDigital = document.getElementById('origin-digital');
@@ -152,12 +153,27 @@
     }
 
     // --- Password Toggle ---
+        // --- Password Toggle ---
     passwordToggle.addEventListener('click', () => {
         const isPassword = passwordInput.type === 'password';
         passwordInput.type = isPassword ? 'text' : 'password';
         passwordToggle.querySelector('.eye-open').classList.toggle('hidden', !isPassword);
         passwordToggle.querySelector('.eye-closed').classList.toggle('hidden', isPassword);
     });
+
+    function showPasswordError() {
+        passwordInput.classList.add('input-error');
+        passwordErrorMsg.classList.remove('hidden');
+        passwordInput.focus();
+        passwordInput.select();
+    }
+
+    function clearPasswordError() {
+        passwordInput.classList.remove('input-error');
+        passwordErrorMsg.classList.add('hidden');
+    }
+
+    passwordInput.addEventListener('input', clearPasswordError);
 
     // --- Form Submit ---
     verifyForm.addEventListener('submit', async (e) => {
@@ -205,9 +221,14 @@
             const result = await response.json();
 
             if (!response.ok) {
+                if (result.password_error) {
+                    showPasswordError();
+                    return;
+                }
                 throw new Error(result.error || 'Verification failed');
             }
 
+            clearPasswordError();
             displayResults(result);
         } catch (err) {
             showToast('❌', err.message || 'An error occurred during verification.');
