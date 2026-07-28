@@ -201,9 +201,10 @@ def verify_document():
         # Save file temporarily
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        
 
         try:
+            file.save(filepath)
             # ── Phase 0: Duplicate Check ────────────────────────────────────
             existing_block = _check_duplicate(filepath, password)
             if existing_block:
@@ -214,6 +215,14 @@ def verify_document():
 
             if doc_type == 'aadhaar':
                 pipeline_results = verify_aadhaar(filepath, password)
+                if pipeline_results.get('password_error'):
+                    return jsonify({
+                        'verdict': 'PENDING',
+                        'verdictReason': pipeline_results['error'],
+                        'error': pipeline_results['error'],
+                        'password_error': True,
+                        'checks': pipeline_results.get('checks', []),
+                    }), 400
             elif doc_type == 'passport':
                 pipeline_results = verify_passport(filepath)
             else:
@@ -242,10 +251,7 @@ def verify_document():
                         elif check.get('name') == 'Candidate DOB Cross-Check':
                             cross_check_info['dob_match'] = check.get('passed')
                     if cross_check_info:
-                        cross_check_info['name_mismatch_caused_rejection'] = (
-                            cross_check_info.get('name_match') is False
-                            and final_result.get('verdict') == 'REJECTED'
-                        )
+                        cross_check_info['cross_check_warning'] = final_result.get('cross_check_warning')
 
                 # Store the document-intrinsic verdict and confidence (before cross-check penalties)
                 # in the ledger so a wrong candidate name input doesn't permanently taint the record.
@@ -450,12 +456,12 @@ def ledger_lookup():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', '5000'))
     print("\n" + "=" * 60)
     print("  BGV Document Verification Engine v3.0")
     print("  Fingerprinting + Blockchain Audit Ledger ENABLED")
     print("  Duplicate detection: ON (crypto_hash pre-check)")
-    print(f"  Server running at: http://0.0.0.0:{port}")
+    print("  Server running at: http://localhost:5000")
     print("=" * 60 + "\n")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
+ 
