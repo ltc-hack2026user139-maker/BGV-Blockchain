@@ -420,14 +420,15 @@ def cross_verify_candidate(final_resp, pipeline_result, expected_name, expected_
                 'description': f"Expected DOB '{expected_dob}' not found on document",
             })
 
-    # Apply penalties
+    # Cross-check failures are warnings only — they never change the document verdict.
+    # The document's authenticity (signature, QR, fields) is the source of truth.
+    # A wrong candidate name/DOB entered by the operator must not taint the verdict.
     if penalties > 0:
-        final_resp['confidenceScore'] = max(0, final_resp['confidenceScore'] - penalties)
-        if penalties >= 30:
-            final_resp['verdict'] = 'REJECTED'
-            final_resp['verdictReason'] = 'Identity mismatch: The uploaded document does not belong to the candidate.'
-        elif final_resp['verdict'] == 'VERIFIED':
-            final_resp['verdict'] = 'SUSPICIOUS'
-            final_resp['verdictReason'] = 'Identity mismatch detected during cross-verification.'
+        final_resp['cross_check_warning'] = (
+            'Cross-check failed: the provided candidate details did not match the document. '
+            'The document verdict above reflects document authenticity only. '
+            'Please verify the name/DOB entered for this candidate.'
+        )
 
     return final_resp
+ 
