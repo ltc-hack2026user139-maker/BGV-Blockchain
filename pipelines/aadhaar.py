@@ -1,4 +1,4 @@
-"""
+​"""
 BGV Pipeline 1: Aadhaar Verification
 =====================================
 Flow: Decrypt PDF (password) -> Render page at high DPI -> Extract QR (numeric string) ->
@@ -117,6 +117,7 @@ def verify_aadhaar(filepath, password):
             'detail': 'Incorrect password',
         })
         result['error'] = 'Incorrect PDF password. Please check and try again.'
+        result['password_error'] = True
         return result
     except Exception as e:
         result['checks'].append({

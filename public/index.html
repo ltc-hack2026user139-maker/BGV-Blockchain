@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BGV Document Verification Engine</title>
+    <title>BGV Document Verification — Lloyds Banking Group</title>
     <meta name="description" content="Automated document verification and tamper detection for background verification">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,35 +11,30 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo-group">
-                    <div class="logo-icon">
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                            <rect width="32" height="32" rx="8" fill="url(#logo-grad)"/>
-                            <path d="M10 16L14 20L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <defs>
-                                <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32">
-                                    <stop stop-color="#6366F1"/>
-                                    <stop offset="1" stop-color="#8B5CF6"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="logo-text">DocVerify</h1>
-                        <p class="logo-sub">BGV Verification Engine</p>
-                    </div>
+    <!-- Header — full-width banking blue bar -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-group">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.15)"/>
+                        <path d="M10 16L14 20L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="1" y="1" width="30" height="30" rx="7" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                    </svg>
                 </div>
-                <div class="header-badge">
-                    <span class="pulse-dot"></span>
-                    Engine Active
+                <div>
+                    <h1 class="logo-text">BGV Verification Engine</h1>
+                    <p class="logo-sub">Lloyds Banking Group · Background Verification</p>
                 </div>
             </div>
-        </header>
+            <div class="header-badge">
+                <span class="pulse-dot"></span>
+                Engine Active
+            </div>
+        </div>
+    </header>
 
+    <div class="app-container">
         <!-- Main Content -->
         <main class="main-content">
             <!-- Upload Section -->
@@ -101,13 +96,13 @@
                         </div>
                     </div>
 
-                    <!-- Candidate Details (Optional but Recommended) -->
+                    <!-- Candidate Details -->
                     <div class="form-group">
                         <label class="form-label">
                             Candidate Details
-                            <span class="label-hint">Optional — Used for cross-document name & DOB matching</span>
+                            <span class="label-hint">Optional — Name &amp; DOB cross-check</span>
                         </label>
-                        <div class="candidate-inputs" style="display: flex; gap: 16px;">
+                        <div class="candidate-inputs" style="display: flex; gap: 14px;">
                             <div style="flex: 1;">
                                 <input type="text" id="candidate-name" class="form-input" placeholder="Expected Full Name" autocomplete="off">
                             </div>
@@ -123,25 +118,19 @@
                         <div class="file-drop-zone" id="file-drop-zone">
                             <div class="drop-zone-content" id="drop-zone-content">
                                 <div class="drop-icon">
-                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                                        <rect x="4" y="4" width="40" height="40" rx="12" stroke="url(#upload-grad)" stroke-width="2" stroke-dasharray="4 4"/>
-                                        <path d="M24 18V30M18 24L24 18L30 24" stroke="url(#upload-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <defs>
-                                            <linearGradient id="upload-grad" x1="4" y1="4" x2="44" y2="44">
-                                                <stop stop-color="#6366F1"/>
-                                                <stop offset="1" stop-color="#8B5CF6"/>
-                                            </linearGradient>
-                                        </defs>
+                                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                                        <rect x="3" y="3" width="38" height="38" rx="10" stroke="#0057B8" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+                                        <path d="M22 14V30M15 21L22 14L29 21" stroke="#0057B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </div>
-                                <p class="drop-text">Drag & drop your document here</p>
+                                <p class="drop-text">Drag &amp; drop your document here</p>
                                 <p class="drop-subtext">or <span class="browse-link">browse files</span></p>
-                                <p class="drop-formats">Supports PDF, JPG, PNG • Max 10MB</p>
+                                <p class="drop-formats">PDF, JPG, PNG · Max 10 MB</p>
                             </div>
                             <div class="file-preview hidden" id="file-preview">
                                 <div class="file-info">
                                     <div class="file-icon">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
                                             <path d="M14 2v6h6"/>
                                         </svg>
@@ -152,7 +141,7 @@
                                     </div>
                                 </div>
                                 <button type="button" class="file-remove" id="file-remove" title="Remove file">
-                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M4 4L14 14M14 4L4 14"/>
                                     </svg>
                                 </button>
@@ -181,6 +170,7 @@
                             </button>
                         </div>
                         <p class="field-hint">Typically your Aadhaar number or ZIP code used during download</p>
+                        <p class="field-error hidden" id="password-error-msg">Incorrect password — please check and try again.</p>
                     </div>
 
                     <!-- Document Origin — only shown for "Other Document" (tamper detection) -->
@@ -214,7 +204,7 @@
                     <!-- Submit Button -->
                     <button type="submit" class="verify-btn" id="verify-btn">
                         <span class="btn-text">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 17A8 8 0 109 1a8 8 0 000 16z"/>
                                 <path d="M7 9L9 11L13 7"/>
                             </svg>
@@ -222,7 +212,7 @@
                         </span>
                         <span class="btn-loading hidden">
                             <div class="spinner"></div>
-                            Analyzing...
+                            Analysing document…
                         </span>
                     </button>
                 </form>
@@ -232,7 +222,7 @@
             <section class="results-section hidden" id="results-section">
                 <div class="section-header">
                     <button class="back-btn" id="back-btn">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M15 10H5M5 10L9 6M5 10L9 14"/>
                         </svg>
                         New Verification
@@ -249,16 +239,16 @@
                     </div>
                     <div class="confidence-ring" id="confidence-ring">
                         <svg viewBox="0 0 120 120">
-                            <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="none"/>
-                            <circle cx="60" cy="60" r="52" stroke="url(#ring-grad)" stroke-width="8" fill="none"
-                                    stroke-dasharray="327" stroke-dashoffset="327" stroke-linecap="round"
-                                    id="confidence-circle" transform="rotate(-90 60 60)"/>
                             <defs>
                                 <linearGradient id="ring-grad" x1="0" y1="0" x2="120" y2="120">
                                     <stop stop-color="#22C55E"/>
                                     <stop offset="1" stop-color="#16A34A"/>
                                 </linearGradient>
                             </defs>
+                            <circle cx="60" cy="60" r="52" stroke="#E2E8F0" stroke-width="8" fill="none"/>
+                            <circle cx="60" cy="60" r="52" stroke="url(#ring-grad)" stroke-width="8" fill="none"
+                                    stroke-dasharray="327" stroke-dashoffset="327" stroke-linecap="round"
+                                    id="confidence-circle" transform="rotate(-90 60 60)"/>
                         </svg>
                         <div class="confidence-value">
                             <span class="confidence-number" id="confidence-number">0</span>
@@ -293,7 +283,7 @@
                     </div>
                 </div>
 
-                <!-- Tamper Module Score Breakdown (tamper/other pipeline) -->
+                <!-- Tamper Module Score Breakdown -->
                 <div class="data-card hidden" id="tamper-card">
                     <h3 class="data-card-title">
                         <span class="data-card-icon">🔬</span>
@@ -326,7 +316,7 @@
                 </div>
 
                 <!-- Chain Integrity Verifier -->
-                <div class="data-card" id="chain-integrity-card" style="margin-top:16px;">
+                <div class="data-card" id="chain-integrity-card" style="margin-top:0;">
                     <h3 class="data-card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
                         <span>
                             <span class="data-card-icon">⛓</span>
@@ -351,10 +341,10 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>BGV Document Verification Engine v3.0 • Fingerprinting + Blockchain Audit Ledger Active</p>
+            <p>BGV Document Verification Engine v3.0 &nbsp;·&nbsp; Fingerprinting + Blockchain Audit Ledger Active &nbsp;·&nbsp; Lloyds Banking Group Internal Tool</p>
         </footer>
     </div>
 
-    <script src="/app.js?v=6"></script>
+    <script src="/app.js?v=7"></script>
 </body>
 </html>

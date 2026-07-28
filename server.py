@@ -198,12 +198,11 @@ def verify_document():
         # is_scanned: only relevant for the 'other' (tamper) pipeline
         is_scanned = request.form.get('isScanned', 'false').lower() in ('true', '1', 'yes')
 
-        # Save file temporarily
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
 
         try:
+            file.save(filepath)
             # ── Phase 0: Duplicate Check ────────────────────────────────────
             existing_block = _check_duplicate(filepath, password)
             if existing_block:
@@ -214,6 +213,14 @@ def verify_document():
 
             if doc_type == 'aadhaar':
                 pipeline_results = verify_aadhaar(filepath, password)
+                if pipeline_results.get('password_error'):
+                    return jsonify({
+                        'verdict': 'PENDING',
+                        'verdictReason': pipeline_results['error'],
+                        'error': pipeline_results['error'],
+                        'password_error': True,
+                        'checks': pipeline_results.get('checks', []),
+                    }), 400
             elif doc_type == 'passport':
                 pipeline_results = verify_passport(filepath)
             else:
@@ -459,3 +466,4 @@ if __name__ == '__main__':
     print("=" * 60 + "\n")
     app.run(host='0.0.0.0', port=port, debug=False)
 
+ 
