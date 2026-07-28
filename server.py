@@ -198,10 +198,8 @@ def verify_document():
         # is_scanned: only relevant for the 'other' (tamper) pipeline
         is_scanned = request.form.get('isScanned', 'false').lower() in ('true', '1', 'yes')
 
-        # Save file temporarily
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        
 
         try:
             file.save(filepath)
@@ -251,7 +249,10 @@ def verify_document():
                         elif check.get('name') == 'Candidate DOB Cross-Check':
                             cross_check_info['dob_match'] = check.get('passed')
                     if cross_check_info:
-                        cross_check_info['cross_check_warning'] = final_result.get('cross_check_warning')
+                        cross_check_info['name_mismatch_caused_rejection'] = (
+                            cross_check_info.get('name_match') is False
+                            and final_result.get('verdict') == 'REJECTED'
+                        )
 
                 # Store the document-intrinsic verdict and confidence (before cross-check penalties)
                 # in the ledger so a wrong candidate name input doesn't permanently taint the record.
