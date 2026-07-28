@@ -1,70 +1,48 @@
-steps:
-  # Build Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'build'
-      - '-t'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
-      - '.'
+FROM python:3.11-slim
 
-  # Push image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
 
-  # Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - '${_SERVICE_NAME}'
-      - '--image'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
-      - '--region'
-      - '${_REGION}'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--port'
-      - '5000'
-      - '--memory'
-      - '2Gi'
-      - '--cpu'
-      - '2'
-      - '--min-instances'
-      - '0'
-      - '--max-instances'
-      - '10'
-      - '--set-env-vars'
-      - >-
-        FLASK_ENV=production,
-        BGV_LEDGER_PATH=/tmp/bgv_ledger.ndjson,
-        CORTEX_BASE_URL=https://cortex.lloydsbanking.cloud/api/v1,
-        CORTEX_API_KEY=YOUR_CORTEX_API_KEY,
-        GEMINI_MODEL=gemini-2.5-flash,
-        GOOGLE_CLOUD_PROJECT=ltc-hack2026-team28,
-        GOOGLE_CLOUD_LOCATION=global,
-        FABRIC_GATEWAY_PEER=34.72.224.210:7051,
-        FABRIC_MSP_ID=Org1MSP,
-        FABRIC_MSP_CONFIG_PATH=/app/fabric-certs/msp,
-        FABRIC_TLS_CERT_PATH=/app/fabric-certs/tlsca.org1.example.com-cert.pem,
-        FABRIC_PEER2_ADDRESS=34.72.224.210:9051,
-        FABRIC_PEER2_TLS_CERT=/app/fabric-certs/tlsca.org2.example.com-cert.pem,
-        FABRIC_ORDERER_ADDRESS=34.72.224.210:7050,
-        FABRIC_ORDERER_TLS_CERT=/app/fabric-certs/tlsca.example.com-cert.pem,
-        FABRIC_CHANNEL=bgvchannel,
-        FABRIC_CHAINCODE=bgv,
-        FABRIC_BIN_PATH=/usr/local/bin
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    libzbar0 \
+    libpoppler-cpp-dev \
+    wget \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
 
-substitutions:
-  _REGION: 'us-central1'
-  _ARTIFACT_REPOSITORY: 'bgv-repo'
-  _SERVICE_NAME: 'bgv-document-verification'
+# Hyperledger Fabric peer binary + config
+RUN wget -q https://github.com/hyperledger/fabric/releases/download/v2.5.0/hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \
+    tar xzf hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \
+    mv bin/peer /usr/local/bin/peer && \
+    mv config /app/fabric-config && \
+    rm -rf hyperledger-fabric-linux-amd64-2.5.0.tar.gz bin
 
-images:
-  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+ENV FABRIC_BIN_PATH=/usr/local/bin
+ENV FABRIC_CFG_PATH=/app/fabric-config
 
-options:
-  logging: CLOUD_LOGGING_ONLY
+COPY requirements.txt .
+COPY fabric-certs/ /app/fabric-certs/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+RUN mkdir -p /app/uploads /app/data
+
+EXPOSE 5000
+
+ENV FLASK_ENV=production
+ENV BGV_LEDGER_PATH=/app/data/bgv_ledger.ndjson
+
+CMD ["python", "server.py"]
