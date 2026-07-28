@@ -1,5 +1,4 @@
 steps:
-  # Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -7,13 +6,11 @@ steps:
       - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
       - '.'
 
-  # Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
 
-  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -46,13 +43,13 @@ steps:
         GEMINI_MODEL=gemini-2.5-flash,
         GOOGLE_CLOUD_PROJECT=ltc-hack2026-team28,
         GOOGLE_CLOUD_LOCATION=global,
-        FABRIC_GATEWAY_PEER=peer0.org1.example.com:7051,
+        FABRIC_GATEWAY_PEER=34.72.224.210:7051,
         FABRIC_MSP_ID=Org1MSP,
         FABRIC_MSP_CONFIG_PATH=/app/fabric-certs/msp,
         FABRIC_TLS_CERT_PATH=/app/fabric-certs/tlsca.org1.example.com-cert.pem,
-        FABRIC_PEER2_ADDRESS=peer0.org2.example.com:9051,
+        FABRIC_PEER2_ADDRESS=34.72.224.210:9051,
         FABRIC_PEER2_TLS_CERT=/app/fabric-certs/tlsca.org2.example.com-cert.pem,
-        FABRIC_ORDERER_ADDRESS=orderer.example.com:7050,
+        FABRIC_ORDERER_ADDRESS=34.72.224.210:7050,
         FABRIC_ORDERER_TLS_CERT=/app/fabric-certs/tlsca.example.com-cert.pem,
         FABRIC_CHANNEL=bgvchannel,
         FABRIC_CHAINCODE=bgv,
