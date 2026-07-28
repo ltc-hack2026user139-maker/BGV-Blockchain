@@ -1,11 +1,10 @@
 FROM python:3.11-slim
 
-# Prevent Python from writing .pyc files and buffer stdout/stderr
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# System dependencies
+# System dependencies + wget/tar for peer binary download
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
@@ -19,7 +18,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-eng \
     libzbar0 \
     libpoppler-cpp-dev \
+    wget \
+    tar \
     && rm -rf /var/lib/apt/lists/*
+
+# Hyperledger Fabric peer binary
+RUN wget -q https://github.com/hyperledger/fabric/releases/download/v2.5.0/hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \
+    tar xzf hyperledger-fabric-linux-amd64-2.5.0.tar.gz && \
+    mv bin/peer /usr/local/bin/peer && \
+    rm -rf hyperledger-fabric-linux-amd64-2.5.0.tar.gz bin config
+
+ENV FABRIC_BIN_PATH=/usr/local/bin
 
 COPY requirements.txt .
 COPY fabric-certs/ /app/fabric-certs/
@@ -35,3 +44,4 @@ ENV FLASK_ENV=production
 ENV BGV_LEDGER_PATH=/app/data/bgv_ledger.ndjson
 
 CMD ["python", "server.py"]
+ 
