@@ -38,24 +38,7 @@ steps:
       - '--max-instances'
       - '10'
       - '--set-env-vars'
-      - >-
-        FLASK_ENV=production,
-        BGV_LEDGER_PATH=/tmp/bgv_ledger.ndjson,
-        CORTEX_BASE_URL=https://cortex.lloydsbanking.cloud/api/v1,
-        CORTEX_API_KEY=ck_dev_WpBzSnJjnTuKGoxzdO4XlHEuO6Fo6-3TVxm27ig0N34,
-        GEMINI_MODEL=gemini-2.5-flash,
-        GOOGLE_CLOUD_PROJECT=ltc-hack2026-team28,
-        GOOGLE_CLOUD_LOCATION=global,
-        FABRIC_GATEWAY_PEER=34.72.224.210:7051,
-        FABRIC_MSP_ID=Org1MSP,
-        FABRIC_MSP_CONFIG_PATH=/app/fabric-certs/msp,
-        FABRIC_TLS_CERT_PATH=/app/fabric-certs/tlsca.org1.example.com-cert.pem,
-        FABRIC_PEER2_ADDRESS=34.72.224.210:9051,
-        FABRIC_PEER2_TLS_CERT=/app/fabric-certs/tlsca.org2.example.com-cert.pem,
-        FABRIC_ORDERER_ADDRESS=34.72.224.210:7050,
-        FABRIC_ORDERER_TLS_CERT=/app/fabric-certs/tlsca.example.com-cert.pem,
-        FABRIC_CHANNEL=bgvchannel,
-        FABRIC_CHAINCODE=bgv
+      - 'FLASK_ENV=production,BGV_LEDGER_PATH=/tmp/bgv_ledger.ndjson,CORTEX_BASE_URL=https://cortex.lloydsbanking.cloud/api/v1,CORTEX_API_KEY=ck_dev_WpBzSnJjnTuKGoxzdO4XlHEuO6Fo6-3TVxm27ig0N34,GEMINI_MODEL=gemini-2.5-flash,GOOGLE_CLOUD_PROJECT=ltc-hack2026-team28,GOOGLE_CLOUD_LOCATION=global,FABRIC_GATEWAY_PEER=34.72.224.210:7051,FABRIC_MSP_ID=Org1MSP,FABRIC_MSP_CONFIG_PATH=/app/fabric-certs/msp,FABRIC_TLS_CERT_PATH=/app/fabric-certs/tlsca.org1.example.com-cert.pem,FABRIC_PEER2_ADDRESS=34.72.224.210:9051,FABRIC_PEER2_TLS_CERT=/app/fabric-certs/tlsca.org2.example.com-cert.pem,FABRIC_ORDERER_ADDRESS=34.72.224.210:7050,FABRIC_ORDERER_TLS_CERT=/app/fabric-certs/tlsca.example.com-cert.pem,FABRIC_CHANNEL=bgvchannel,FABRIC_CHAINCODE=bgv'
 
 substitutions:
   _REGION: 'us-central1'
