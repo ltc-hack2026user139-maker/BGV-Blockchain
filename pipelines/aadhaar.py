@@ -1,4 +1,4 @@
-​"""
+"""
 BGV Pipeline 1: Aadhaar Verification
 =====================================
 Flow: Decrypt PDF (password) -> Render page at high DPI -> Extract QR (numeric string) ->
