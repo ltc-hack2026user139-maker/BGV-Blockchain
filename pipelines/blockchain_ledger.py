@@ -55,8 +55,9 @@ def _peer_env() -> dict:
     env['CORE_PEER_TLS_ENABLED']       = 'true'
     env['CORE_PEER_LOCALMSPID']        = os.environ.get('FABRIC_MSP_ID', 'Org1MSP')
     env['CORE_PEER_ADDRESS']           = os.environ.get('FABRIC_GATEWAY_PEER', 'localhost:7051')
-    env['CORE_PEER_TLS_ROOTCERT_FILE'] = os.environ.get('FABRIC_TLS_CERT_PATH', '')
-    env['CORE_PEER_MSPCONFIGPATH']     = os.environ.get('FABRIC_MSP_CONFIG_PATH', '')
+    env['CORE_PEER_TLS_ROOTCERT_FILE']   = os.environ.get('FABRIC_TLS_CERT_PATH', '')
+    env['CORE_PEER_MSPCONFIGPATH']       = os.environ.get('FABRIC_MSP_CONFIG_PATH', '')
+    env['CORE_PEER_TLS_SERVERHOSTNAME']  = os.environ.get('FABRIC_PEER_HOSTNAME', 'peer0.org1.example.com')
     if os.environ.get('FABRIC_CFG_PATH'):
         env['FABRIC_CFG_PATH'] = os.environ['FABRIC_CFG_PATH']
     return env
@@ -372,3 +373,4 @@ def get_ledger_stats() -> dict:
         'doc_types': doc_types,
         'ledger_path': LEDGER_PATH,
     }
+ 
