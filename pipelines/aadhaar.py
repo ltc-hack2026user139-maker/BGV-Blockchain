@@ -838,10 +838,15 @@ def verify_pdf_digital_signature(filepath, password):
         return result
 
     try:
+        from pyhanko_certvalidator.errors import PathBuildingError
+    except ImportError:
+        PathBuildingError = Exception
+
+    try:
         from pyhanko.pdf_utils.reader import PdfFileReader
         from pyhanko.sign.validation import validate_pdf_signature, ValidationContext
+        from pyhanko.sign.diff_analysis import ModificationLevel
         from pyhanko.keys import load_cert_from_pemder
-        from pyhanko_certvalidator.errors import PathBuildingError
         
         # Load the user-provided trusted root certificate
         try:
@@ -903,6 +908,20 @@ def verify_pdf_digital_signature(filepath, password):
                 result['detail'] = (
                     'Document modified after signing — suspicious PDF structure '
                     'changes detected (incremental revision with unexplained xrefs)'
+                )
+                result['tamper_detected'] = True
+            elif status.modification_level not in (
+                ModificationLevel.NONE,
+                ModificationLevel.LTA_UPDATES,
+            ):
+                # Post-signature modification detected (e.g. annotation/text field overlay).
+                # UIDAI never issues PDFs that expect post-signing edits — any incremental
+                # update beyond LTA timestamp archival must be treated as tampering.
+                result['valid'] = False
+                result['detail'] = (
+                    f'Post-signature modification detected '
+                    f'(level: {status.modification_level.name}) — '
+                    f'document was altered after UIDAI signed it'
                 )
                 result['tamper_detected'] = True
             elif status.intact and status.valid:
